@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-
+//added by codex
+import '../main.dart';
 class CreateReminderScreen extends StatefulWidget {
   const CreateReminderScreen({Key? key}) : super(key: key);
 
@@ -88,6 +89,7 @@ class _CreateReminderScreenState
           .update({
         "pendingReminders": FieldValue.increment(1),
       });
+      await debugDriver.syncAndRefreshCache();//added codex
 
       setState(() {
         _message = "✅ Reminder Created Successfully";

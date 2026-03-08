@@ -149,6 +149,9 @@ import 'services/notification_service.dart';
 import 'screens/home.dart';
 import 'services/dynamic_driver.dart';
 
+//added
+import 'services/reminder_cache.dart';
+
 final DynamicDriver debugDriver = DynamicDriver();
 final GlobalKey<NavigatorState> navigatorKey =
 GlobalKey<NavigatorState>();
@@ -157,8 +160,30 @@ Future<void> main() async {
 
   // 🔥 Firebase initialization
   await Firebase.initializeApp();
-  await debugDriver.initialize();
-  debugDriver.start();
+
+  FirebaseAuth.instance.authStateChanges().listen((user) async {
+    if (user != null) {
+      debugPrint("✅ User logged in → Starting DynamicDriver");
+      await debugDriver.initialize();
+      debugDriver.start();
+
+      //debug
+      // debugDriver.onAlarm = (reminder) async {
+      //   await NotificationService.showAlarmFromBackground(
+      //     reminderId: reminder["id"],
+      //     description: reminder["description"],
+      //   );
+      // };
+    } else {
+      debugPrint("❌ User logged out → Stopping DynamicDriver");
+      debugDriver.stop();
+      await ReminderCache.clear();
+    }
+  });
+
+  //below 2 lines remode by codex
+  // await debugDriver.initialize();
+  // debugDriver.start();
   // 🔍 Firestore connection check
   await checkFirestoreConnection();
 
@@ -168,11 +193,13 @@ Future<void> main() async {
     androidConfiguration: AndroidConfiguration(
       onStart: onStart,
       isForegroundMode: true,
-      autoStart: false,
+      //autoStart: false,//debug only
+      autoStart: true,
       foregroundServiceNotificationId: 888,
     ),
     iosConfiguration: IosConfiguration(
-      autoStart: false,
+      //autoStart: false,
+      autoStart: true,
       onForeground: onStart,
       onBackground: iosBackgroundHandler,
     ),
@@ -223,7 +250,7 @@ class MyApp extends StatelessWidget {
         "/home": (context) => const HomeScreen(),
        // "/location": (context) => const LocationStatusScreen(),
       },
-    );
+    );`
   }
 }
 

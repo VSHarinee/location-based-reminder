@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
-
+import '../services/notification_service.dart';
 class FullScreenAlarmPage extends StatefulWidget {
   final Map<String, dynamic> reminder;
 
@@ -19,6 +19,19 @@ class _FullScreenAlarmPageState extends State<FullScreenAlarmPage> {
     WakelockPlus.enable();
   }
 
+  // Future<void> _completeReminder() async {
+  //   await FirebaseFirestore.instance
+  //       .collection("reminders")
+  //       .doc(widget.reminder["id"])
+  //       .update({
+  //     "status": "completed",
+  //     "triggeredAt": FieldValue.serverTimestamp(),
+  //   });
+  //
+  //   Navigator.pop(context);
+  // }
+
+  //changed by codex
   Future<void> _completeReminder() async {
     await FirebaseFirestore.instance
         .collection("reminders")
@@ -28,10 +41,36 @@ class _FullScreenAlarmPageState extends State<FullScreenAlarmPage> {
       "triggeredAt": FieldValue.serverTimestamp(),
     });
 
+    // stop ringing notification
+    // import NotificationService
+    await NotificationService.stopAlarmNotification();
+
+    if (!mounted) return;
     Navigator.pop(context);
   }
 
-  void _snooze() {
+
+
+  // void _snooze() {
+  //   Navigator.pop(context);
+  // }
+
+  //codex
+
+
+  Future<void> _snooze() async {
+    // Example snooze: keep reminder pending but postpone trigger metadata.
+    await FirebaseFirestore.instance
+        .collection("reminders")
+        .doc(widget.reminder["id"])
+        .update({
+      "status": "pending",
+      "snoozedAt": FieldValue.serverTimestamp(),
+    });
+
+    await NotificationService.stopAlarmNotification();
+
+    if (!mounted) return;
     Navigator.pop(context);
   }
 

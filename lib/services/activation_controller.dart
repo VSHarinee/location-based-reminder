@@ -25,5 +25,7 @@ class ActivationController {
         isActive = false;
       }
     }
+
+    //isActive = true; // DEBUG ONLY
+     }
   }
-}

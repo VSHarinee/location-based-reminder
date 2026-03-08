@@ -1,6 +1,7 @@
+//codex edited file
+
 import 'dart:async';
 import 'package:geolocator/geolocator.dart';
-
 import 'activation_controller.dart';
 import 'speed_filter.dart';
 import 'topk_manager.dart';
@@ -18,15 +19,18 @@ class DynamicDriver {
   int debugPollingInterval = 0;
   String debugNearest = "";
 
-
   final SpeedFilter _speedFilter = SpeedFilter();
   final ActivationController _activation = ActivationController();
   final TopKManager _topK = TopKManager();
   final PollingController _polling = PollingController();
   final ReminderEngine _engine = ReminderEngine();
 
+  // StreamSubscription<Position>? _positionStream;
+  // Timer? _watcherTimer;
+
   StreamSubscription<Position>? _positionStream;
   Timer? _watcherTimer;
+  bool _isStarted = false;
 
   List<Map<String, dynamic>> _cachedReminders = [];
 
@@ -37,11 +41,29 @@ class DynamicDriver {
   String debugStatus = "Idle";
 
   Future<void> initialize() async {
-    await ReminderCache.syncFromFirestore();  // 🔥 NEW
-    _cachedReminders = await ReminderCache.loadReminders();
+    await syncAndRefreshCache();
   }
 
+  // Future<void> initialize() async {
+  //   await ReminderCache.syncFromFirestore();  // 🔥 NEW
+  //   _cachedReminders = await ReminderCache.loadReminders();
+  // }
+
+  Future<void> syncAndRefreshCache() async {
+    await ReminderCache.syncFromFirestore(); // Firestore -> shared prefs
+    await refreshCache();                    // shared prefs -> memory
+  }
+
+  Future<void> refreshCache() async {
+    _cachedReminders = await ReminderCache.loadReminders();
+    print("🔄 Cache refreshed. Count: ${_cachedReminders.length}");
+  }
+
+
   void start() {
+    if (_isStarted) return; // prevent duplicate streams
+    _isStarted = true;
+
     print("🚀 DynamicDriver started");
     print("Driver instance hash: ${hashCode}");
     _positionStream = Geolocator.getPositionStream(
@@ -53,13 +75,19 @@ class DynamicDriver {
   }
 
   void stop() {
+    // _positionStream?.cancel();
+    // _watcherTimer?.cancel();
     _positionStream?.cancel();
+    _positionStream = null;
     _watcherTimer?.cancel();
+    _watcherTimer = null;
+    _isStarted = false;
+
   }
-  Future<void> refreshCache() async {
-    _cachedReminders = await ReminderCache.loadReminders();
-    print("🔄 Cache refreshed. Count: ${_cachedReminders.length}");
-  }
+  // Future<void> refreshCache() async {
+  //   _cachedReminders = await ReminderCache.loadReminders();
+  //   print("🔄 Cache refreshed. Count: ${_cachedReminders.length}");
+  // }
   void _onLocationUpdate(Position position) {
 
     // ✅ Update instant speed properly
@@ -78,6 +106,7 @@ class DynamicDriver {
     if (!isEngineActive) {
       debugStatus = "Inactive (Speed below threshold)";
       _watcherTimer?.cancel();
+      _watcherTimer = null;//added
       return;
     }
 
@@ -176,14 +205,18 @@ class DynamicDriver {
 
     final radius = _engine.dynamicRadius(_avgSpeed);
 
+
     if (distance <= radius) {
       _onTrigger(reminder);
     }
+    // DEBUG ONLY
+    //_onTrigger(reminder);
   }
 
   void _onTrigger(Map<String, dynamic> reminder) {
 
     debugStatus = "ALARM TRIGGERED: ${reminder["description"]}";
+    print("🔥 DEBUG TRIGGER FIRED at ${DateTime.now()} for ${reminder["id"]}");
 
     if (onAlarm != null) {
       onAlarm!(reminder);

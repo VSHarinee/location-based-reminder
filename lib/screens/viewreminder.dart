@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-
+//add
+import '../main.dart';
 class ReminderListScreen extends StatelessWidget {
   const ReminderListScreen({Key? key}) : super(key: key);
 
@@ -95,6 +96,7 @@ class ReminderListScreen extends StatelessWidget {
         .update({
       "pendingReminders": FieldValue.increment(-1),
     });
+    await debugDriver.syncAndRefreshCache();
 
     ScaffoldMessenger.of(context)
         .showSnackBar(const SnackBar(content: Text("Reminder deleted")));
@@ -148,8 +150,12 @@ class ReminderListScreen extends StatelessWidget {
                 "person": personController.text.trim(),
               });
 
+              await debugDriver.syncAndRefreshCache();
               Navigator.pop(context);
+
             },
+
+
             child: const Text("Update"),
           ),
         ],
