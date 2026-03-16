@@ -33,7 +33,7 @@ import 'dart:math';
 class ReminderEngine {
 
   double dynamicRadius(double avgSpeedKmh) {
-    return 16.5 * avgSpeedKmh + 50;
+    return 16.5 * avgSpeedKmh + 100;  //for bettor prevention of gps error
   }
 
   double haversine(

@@ -14,3 +14,5 @@ class SpeedFilter {
     return _speeds.reduce((a, b) => a + b) / _speeds.length;
   }
 }
+
+// for computing avg speed

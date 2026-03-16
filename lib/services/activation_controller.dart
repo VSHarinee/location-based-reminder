@@ -6,9 +6,19 @@ class ActivationController {
   bool isActive = false;
 
   void update(double avgSpeed) {
+
     final now = DateTime.now();
 
+    // 🚀 Immediate activation if speed > 8 km/h
+    if (avgSpeed > 8) {
+      isActive = true;
+      movingStart = now;
+      idleStart = null;
+      return;
+    }
+
     if (avgSpeed > 3) {
+
       idleStart = null;
 
       movingStart ??= now;
@@ -16,7 +26,9 @@ class ActivationController {
       if (now.difference(movingStart!).inMinutes >= 2) {
         isActive = true;
       }
+
     } else {
+
       movingStart = null;
 
       idleStart ??= now;
@@ -26,6 +38,6 @@ class ActivationController {
       }
     }
 
-    //isActive = true; // DEBUG ONLY
-     }
+    // isActive = true; // DEBUG ONLY
   }
+}

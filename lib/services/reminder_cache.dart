@@ -16,6 +16,7 @@ class ReminderCache {
         .collection("reminders")
         .where("userId", isEqualTo: user.uid)
         .where("status", isEqualTo: "pending")
+        .where("approvalStatus",isEqualTo:"accepted" )
         .get();
 
     final reminders = snapshot.docs.map((doc) {

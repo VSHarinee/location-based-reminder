@@ -10,9 +10,11 @@
 //     );
 //   }
 // }
+
 import 'package:geolocator/geolocator.dart';
 
 class LocationService {
+
   Future<bool> ensurePermission() async {
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
@@ -41,4 +43,10 @@ class LocationService {
       ),
     );
   }
+
+  Future<Position> getCurrentPosition() async {
+    return await Geolocator.getCurrentPosition();
+  }
+
 }
+
